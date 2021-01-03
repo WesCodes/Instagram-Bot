@@ -58,7 +58,7 @@ class CommentBot:
         if followers_list_path is None:
             # write the follower text to the directory this py file is in
             self.ig_bot_kit.writeFollowers()
-            followers_list_path = "followers.txt"
+            followers_list_path = r"output files\followers.txt"
 
             # reload profile
             self.ig_bot_kit.reloadProfile()
@@ -67,7 +67,7 @@ class CommentBot:
         if following_list_path is None:
             # write the following text to the directory this py file is in
             self.ig_bot_kit.writeFollowing()
-            following_list_path = "following.txt"
+            following_list_path = r"output files\following.txt"
 
             # reload profile
             self.ig_bot_kit.reloadProfile()

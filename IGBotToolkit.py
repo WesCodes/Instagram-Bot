@@ -45,7 +45,8 @@ class InstagramBotTools:
         sleep(randint(3, 6))
         
         # go to profile page
-        self.driver.get("https://www.instagram.com/" + self.username)
+        #self.driver.get("https://www.instagram.com/" + self.username)
+        self.driver.get("https://www.instagram.com/tony__zhou/")
 
 
 
@@ -53,6 +54,13 @@ class InstagramBotTools:
         """
         returns a list of followers username with the @ tag infront
         """
+
+        # check follower count
+        follower_count = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH,"//li[2]/a/span"))).text
+        print(follower_count)
+        if int(follower_count) == 0:
+            return []
+
 
         # the link to the followers from profile page
         follower_link = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "followers")))
@@ -75,8 +83,8 @@ class InstagramBotTools:
 
         
         # find all the users
-        follower_list = follower_modal.find_elements_by_tag_name('a')
-        return ["@" + name.text for name in follower_list if len(name.text) > 0]
+        follower_list = follower_modal.find_elements_by_css_selector('li')
+        return ["@" + name.find_element_by_css_selector('a').get_attribute('href').split('/')[3] for name in follower_list]
 
 
     def getFollowingLis(self):
@@ -84,6 +92,12 @@ class InstagramBotTools:
         returns a list of following username with the @ tag infront
         """
         
+        # check follower count
+        following_count = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH,"//li[3]/a/span"))).text
+        print(following_count)
+        if int(following_count) == 0:
+            return []
+
         # the link to the followers from profile page
         following_link = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "following")))
         following_link.click()
@@ -104,11 +118,11 @@ class InstagramBotTools:
 
         
         # find all the users
-        following_list = following_modal.find_elements_by_tag_name('a')
-        return ["@" + name.text for name in following_list if len(name.text) > 0]
+        following_list = following_modal.find_elements_by_css_selector('li')
+        return ["@" + name.find_element_by_css_selector('a').get_attribute('href').split('/')[3] for name in following_list]
 
 
-    def writeFollowers(self, path=""):
+    def writeFollowers(self, path="output files"):
         """
         write text file of followers to destinated path
 
@@ -117,13 +131,13 @@ class InstagramBotTools:
 
         print("inside write follower")
         # save the follower into txt file
-        file1 = open(path + "followers.txt","w+") 
+        file1 = open(path + r"\followers.txt","w+") 
         file1.write('\n'.join(self.getFollowersLis()))
         file1.close()
         print("write Follower done")
         
 
-    def writeFollowing(self, path=""):
+    def writeFollowing(self, path="output files"):
         """
         write text file of following to destinated path
 
@@ -131,7 +145,7 @@ class InstagramBotTools:
         """
 
         # save the following into txt file
-        file1 = open(path + "following.txt","w+") 
+        file1 = open(path + r"\following.txt","w+") 
         file1.write('\n'.join(self.getFollowingLis()))
         file1.close()
 
@@ -176,7 +190,8 @@ class InstagramBotTools:
         reload profile page
         """
 
-        self.driver.get("https://www.instagram.com/" + self.username)
+        #self.driver.get("https://www.instagram.com/" + self.username)
+        self.driver.get("https://www.instagram.com/tony__zhou/")
 
 
     def commentBot(self, ig_post_link, users, seperate = True):
@@ -264,7 +279,7 @@ class InstagramBotTools:
 
         print(amount)
         if users_to_comment_path is None:
-            users_to_comment_path = "users_to_comment_test.txt"
+            users_to_comment_path = r"output files\users_to_comment.txt"
             self.writeFriends(following_list_path, followers_list_path, users_to_comment_path, friends_only)
 
         # goes to link

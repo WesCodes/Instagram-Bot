@@ -45,8 +45,8 @@ class InstagramBotTools:
         sleep(randint(3, 6))
         
         # go to profile page
-        #self.driver.get("https://www.instagram.com/" + self.username)
-        self.driver.get("https://www.instagram.com/tony__zhou/")
+        self.driver.get("https://www.instagram.com/" + self.username)
+        
 
 
 
@@ -190,9 +190,8 @@ class InstagramBotTools:
         reload profile page
         """
 
-        #self.driver.get("https://www.instagram.com/" + self.username)
-        self.driver.get("https://www.instagram.com/tony__zhou/")
-
+        self.driver.get("https://www.instagram.com/" + self.username)
+        
 
     def commentBot(self, ig_post_link, users, seperate = True):
         """

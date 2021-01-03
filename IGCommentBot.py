@@ -79,6 +79,7 @@ class CommentBot:
         # start the comment
         self.ig_bot_kit.commentFFBot(following_list_path, followers_list_path, self.ig_post_link, amount, friends_only, seperate, users_to_comment_path = users_to_comment_path)
 
+        print("done")
         wait_time = random.randint(3, 6)
         time.sleep(wait_time)
 

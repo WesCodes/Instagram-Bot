@@ -84,7 +84,7 @@ class InstagramBotTools:
         
         # find all the users
         follower_list = follower_modal.find_elements_by_css_selector('li')
-        return ["@" + name.find_element_by_css_selector('a').get_attribute('href').split('/')[3] for name in follower_list]
+        return ["@" + name.find_element_by_css_selector('a').get_attribute('href').split('/')[3].strip() for name in follower_list]
 
 
     def getFollowingLis(self):
@@ -119,7 +119,7 @@ class InstagramBotTools:
         
         # find all the users
         following_list = following_modal.find_elements_by_css_selector('li')
-        return ["@" + name.find_element_by_css_selector('a').get_attribute('href').split('/')[3] for name in following_list]
+        return ["@" + name.find_element_by_css_selector('a').get_attribute('href').split('/')[3].strip() for name in following_list]
 
 
     def writeFollowers(self, path="output files"):
@@ -169,12 +169,21 @@ class InstagramBotTools:
         following = following_file.read().split('\n')
 
 
+        # getting rid of empty string in case followers or following are 0
+        following_s = set(following)
+        followers_s = set(followers)
+        if '' in following_s:
+            following_s.remove('')
+        if '' in followers_s:
+            followers_s.remove('')
+
         # get the friends only
         if friends_only:
-            users = list(set(following) & set(followers))
+            users = list(following_s & followers_s)
         else:
             # get both followers and following without duplicates
-            users = list(set(following + followers))
+            users = list(following_s | followers_s)
+            print(users)
 
         print("creating user file")
         # write the result to text file
@@ -288,6 +297,7 @@ class InstagramBotTools:
         wait_interaction = randint(3, 6)
         sleep(wait_interaction)
 
+        print("wow")
         # opening the text file to comment from
         user_comment_file = open(users_to_comment_path, "r")
 
@@ -336,6 +346,7 @@ class InstagramBotTools:
 
                     # if text is empty
                     if account.strip() == "":
+                        print("empty")
                         break
 
                     wait_before_comment = randint(40, 65)

@@ -45,7 +45,7 @@ class InstagramBotTools:
         sleep(randint(3, 6))
         
         # go to profile page
-        self.driver.get("https://www.instagram.com/" + self.username)
+        self.goToProfile()
         
 
 
@@ -194,7 +194,7 @@ class InstagramBotTools:
 
 
 
-    def reloadProfile(self):
+    def goToProfile(self):
         """
         reload profile page
         """

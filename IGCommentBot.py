@@ -1,6 +1,6 @@
 import IGBotToolkit
-import random
-import time
+from random import randint
+from time import sleep
 class CommentBot:
     def __init__(self, username, password, ig_post_link, driver_path):
         self.username = username
@@ -26,15 +26,15 @@ class CommentBot:
         self.ig_bot_kit.login()
 
 
-        wait_time = random.randint(3, 6)
-        time.sleep(wait_time)
+        wait_time = randint(3, 6)
+        sleep(wait_time)
 
         # runs the bot
         self.ig_bot_kit.commentBot(self.ig_post_link, comment_lis, seperate)
 
 
-        wait_time = random.randint(3, 6)
-        time.sleep(wait_time)
+        wait_time = randint(3, 6)
+        sleep(wait_time)
 
         # shut down the driver
         self.ig_bot_kit.driver.quit()
@@ -60,8 +60,11 @@ class CommentBot:
             self.ig_bot_kit.writeFollowers()
             followers_list_path = r"output files\followers.txt"
 
-            # reload profile
-            self.ig_bot_kit.reloadProfile()
+            wait_time = randint(3, 6)
+            sleep(wait_time)
+
+            # leave the followers modal
+            self.ig_bot_kit.driver.back()
 
         # if either path doesn't exist
         if following_list_path is None:
@@ -69,19 +72,23 @@ class CommentBot:
             self.ig_bot_kit.writeFollowing()
             following_list_path = r"output files\following.txt"
 
+            
+            wait_time = randint(3, 6)
+            sleep(wait_time)
+
             # reload profile
-            self.ig_bot_kit.reloadProfile()
+            self.ig_bot_kit.driver.back()
 
         
-        wait_time = random.randint(3, 6)
-        time.sleep(wait_time)
+        wait_time = randint(3, 6)
+        sleep(wait_time)
 
         # start the comment
         self.ig_bot_kit.commentFFBot(following_list_path, followers_list_path, self.ig_post_link, amount, friends_only, seperate, users_to_comment_path = users_to_comment_path)
 
         print("done")
-        wait_time = random.randint(3, 6)
-        time.sleep(wait_time)
+        wait_time = randint(3, 6)
+        sleep(wait_time)
 
         # shut down the driver
         self.ig_bot_kit.driver.quit()

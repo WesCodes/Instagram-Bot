@@ -116,7 +116,7 @@ class InstagramBotTools:
             js_scroll_script = "arguments[0].scrollTo(0, arguments[0].scrollHeight); return arguments[0].scrollHeight"
             curr_scroll_height = self.driver.execute_script(js_scroll_script, following_modal)
 
-        
+
         # find all the users
         following_list = following_modal.find_elements_by_css_selector('li')
         return ["@" + name.find_element_by_css_selector('a').get_attribute('href').split('/')[3].strip() for name in following_list]
@@ -125,29 +125,42 @@ class InstagramBotTools:
     def writeFollowers(self, path="output files"):
         """
         write text file of followers to destinated path
+        Return False if there are no followers
 
         path - the path to write to
         """
 
         print("inside write follower")
         # save the follower into txt file
-        file1 = open(path + r"\followers.txt","w+") 
-        file1.write('\n'.join(self.getFollowersLis()))
+        file1 = open(path + r"\followers.txt","w+")
+
+        follower_string = '\n'.join(self.getFollowersLis())
+        file1.write(follower_string)
         file1.close()
         print("write Follower done")
         
+        if len(follower_string.strip()) == 0:
+            return False
+        return True
 
     def writeFollowing(self, path="output files"):
         """
         write text file of following to destinated path
+        Returns False if there are no followings
 
         path - the path to write to
         """
 
         # save the following into txt file
         file1 = open(path + r"\following.txt","w+") 
-        file1.write('\n'.join(self.getFollowingLis()))
+
+        follower_string = '\n'.join(self.getFollowingLis())
+        file1.write(follower_string)
         file1.close()
+
+        if len(follower_string.strip()) == 0:
+            return False
+        return True
 
 
     def writeFriends(self, following_list_path, followers_list_path, output_file_path, friends_only = True):

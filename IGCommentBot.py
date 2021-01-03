@@ -57,27 +57,29 @@ class CommentBot:
 
         if followers_list_path is None:
             # write the follower text to the directory this py file is in
-            self.ig_bot_kit.writeFollowers()
+            is_not_empty = self.ig_bot_kit.writeFollowers()
             followers_list_path = r"output files\followers.txt"
 
-            wait_time = randint(3, 6)
-            sleep(wait_time)
+            if is_not_empty:
+                wait_time = randint(3, 6)
+                sleep(wait_time)
 
-            # leave the followers modal
-            self.ig_bot_kit.driver.back()
+                # leave the followers modal
+                self.ig_bot_kit.driver.back()
 
         # if either path doesn't exist
         if following_list_path is None:
             # write the following text to the directory this py file is in
-            self.ig_bot_kit.writeFollowing()
+            is_not_empty = self.ig_bot_kit.writeFollowing()
             following_list_path = r"output files\following.txt"
 
-            
-            wait_time = randint(3, 6)
-            sleep(wait_time)
+            # check if there is no following
+            if is_not_empty:
+                wait_time = randint(3, 6)
+                sleep(wait_time)
 
-            # reload profile
-            self.ig_bot_kit.driver.back()
+                # reload profile
+                self.ig_bot_kit.driver.back()
 
         
         wait_time = randint(3, 6)

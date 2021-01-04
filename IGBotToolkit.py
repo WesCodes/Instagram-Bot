@@ -395,4 +395,51 @@ class InstagramBotTools:
                 file.close()
 
 
+    def getComments(self, ig_post_link, amount = None, filter_by = None):
+        """
+        returns a dictionary of comments.
+        if there is no filter specified, then the key-val pair will be ("comment", comments) with 
+        comments being all the current comments(doesn't include replies) on the post
+
+        ig_post_link - the link to the ig post
+        amount - amount of comments to get
+        filter_by - the filters are ['date', 'user', 'keyword']
+        """
+
+        # go to ig post
+        self.driver.get(ig_post_link)
+
+        sleep(2)
+
+        # the area where the comments are displayed
+        post_comment_area_modal = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "EtaWk")))
+
+        # click on the load more button
+        while True:
+            try:
+                # current list of comments
+                comment_list = post_comment_area_modal.find_elements_by_css_selector("ul[class='Mr508']")
+
+                if len(comment_list) >= amount:
+                    break
+                sleep(randint(2, 3))
+
+                load_more_button = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[class='dCJp8 afkep']")))
+                load_more_button.click()
+
+                sleep(randint(2, 3))
+            except Exception as e:
+                print(e)
+                break
+        comment_list = post_comment_area_modal.find_elements_by_css_selector("ul[class='Mr508']")
+        comments = [comment.find_element_by_css_selector("span[class='']").text for comment in comment_list[:amount]]
+        f = open(r"C:\Users\acesw\Documents\Python Projects\Instagram Bot\personal test files\comment_test.txt", "w")
+        print('\n'.join(comments))
+        print(len(comments), "\n", comments)
+
+
+
+
+
+
     

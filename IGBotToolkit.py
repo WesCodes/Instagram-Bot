@@ -400,7 +400,7 @@ class InstagramBotTools:
                 file.close()
 
 
-    def getComments(self, ig_post_link, amount = None, group_by = None, filter_by = None):
+    def getComments(self, ig_post_link, amount = None, group_by = None, filter_by = None, duplicate=True):
         """
         returns a dictionary of comments.
         if there is no filter specified, then the key-val pair will be ("comment", comments) with 
@@ -416,10 +416,11 @@ class InstagramBotTools:
                    ex: filter_by = ['month', beginning_month(ex:yyyy-mm), end_month(ex:yyyy-mm)]
                    ex: filter_by = ['user', [usernames](ex:['nike', 'adidas'])]
                    ex: filter_by = ['keyword', [keywords](ex: ['acquire', 'sire'])] not case sensitive
+        duplicate - True if you want duplicate comments and False elsewise
         """
 
 
-        def filter_comments(comment_list, filter_by=None):
+        def filter_comments(comment_list, duplicate, filter_by=None):
             """
             filter a selenium comment element by the filtered. returns the comment_list element that is filtered
 
@@ -429,7 +430,39 @@ class InstagramBotTools:
                        ex: filter_by = ['month', beginning_month(ex:yyyy-mm), end_month(ex:yyyy-mm)]
                        ex: filter_by = ['user', [usernames](ex:['nike', 'adidas'])]
                        ex: filter_by = ['keyword', [keywords](ex: ['acquire', 'sire'])] not case sensitive
+            duplicate - True if you want duplicate comments and False elsewise
             """
+
+            def filter_duplicate(comment_list, duplicate):
+                """
+                get rid of duplicates and return a list of comments with no dupes
+
+
+                comment_list - the ul element that holds all the comment
+                duplicate - True if yes else no duplicates
+                """
+                if not duplicate:
+                    seen_set = set()
+                    no_dupe_comment_lis = []
+                    for comment in comment_list:
+                        # the user name
+                        user = comment.find_element_by_css_selector("a[class='sqdOP yWX7d     _8A5w5   ZIAjV ']").text
+
+                        # the comment text
+                        comment_text = comment.find_element_by_css_selector("span[class='']").text.lower()
+                        
+                        # check if already seen. not case sensitive
+                        if (user, comment_text) not in seen_set:
+                            unique_comment_pair = (user, comment_text)
+                            seen_set.add(unique_comment_pair)
+                            no_dupe_comment_lis.append(comment)
+                    print(seen_set)
+                    return no_dupe_comment_lis
+                return comment_list
+
+            # filters out duplicate if no duplicate is desired
+            comment_list = filter_duplicate(comment_list, duplicate)
+
             filter_type = filter_by[0]
             filtered_comment_list = []
             if filter_type == 'full_date':
@@ -578,8 +611,8 @@ class InstagramBotTools:
                     if len(comment_list) >= amount:
                         break
                 
-                wait_time = randint(1,2)
-                sleep(wait_time)
+                #wait_time = randint(1,2)
+                #sleep(wait_time)
 
                 load_more_button = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[class='dCJp8 afkep']")))
                 load_more_button.click()
@@ -593,7 +626,7 @@ class InstagramBotTools:
         comment_list = post_comment_area_modal.find_elements_by_css_selector("ul[class='Mr508']")[:amount]
 
         if filter_by is not None:
-            comment_list = filter_comments(comment_list, filter_by)
+            comment_list = filter_comments(comment_list, duplicate, filter_by)
         
         return group_comments(comment_list, group_by)
         #f = io.open(r"C:\Users\acesw\Documents\Python Projects\Instagram Bot\personal test files\comment_test.txt", "w", encoding="utf-8")

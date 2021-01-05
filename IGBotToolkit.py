@@ -5,6 +5,7 @@ from CountDownConsole import countdown
 from random import randint
 from time import sleep
 from collections import defaultdict
+from datetime import datetime
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -145,6 +146,7 @@ class InstagramBotTools:
         if len(follower_string.strip()) == 0:
             return False
         return True
+
 
     def writeFollowing(self, path="output files"):
         """
@@ -398,7 +400,7 @@ class InstagramBotTools:
                 file.close()
 
 
-    def getComments(self, ig_post_link, amount = None, group_by = None):
+    def getComments(self, ig_post_link, amount = None, group_by = None, filter_by = None):
         """
         returns a dictionary of comments.
         if there is no filter specified, then the key-val pair will be ("comment", comments) with 
@@ -409,12 +411,93 @@ class InstagramBotTools:
         group_by - the group by filters are ['full_date', 'user']
                    ex: full_date: Dec 26, 2020
                    ex: user: nike
+        filter_by - what to filter comment by
+                   ex: filter_by = ['full_date', beginning_date(formatted: yyyy-mm-day(ex:2020-03-07), end_date(formatted: yyyy-mm-day(ex:2020-03-08)]
+                   ex: filter_by = ['month', beginning_month(ex:yyyy-mm), end_month(ex:yyyy-mm)]
+                   ex: filter_by = ['user', [usernames](ex:['nike', 'adidas'])]
+                   ex: filter_by = ['keyword', [keywords](ex: ['acquire', 'sire'])] not case sensitive
         """
+
+
+        def filter_comments(comment_list, filter_by=None):
+            """
+            filter a selenium comment element by the filtered. returns the comment_list element that is filtered
+
+            comment_list - the ul element that holds all the comment
+            filter_by - what to filter comment by
+                       ex: filter_by = ['full_date', beginning_date(formatted: yyyy-mm-day(ex:2020-03-07), end_date(formatted: yyyy-mm-day(ex:2020-03-08)]
+                       ex: filter_by = ['month', beginning_month(ex:yyyy-mm), end_month(ex:yyyy-mm)]
+                       ex: filter_by = ['user', [usernames](ex:['nike', 'adidas'])]
+                       ex: filter_by = ['keyword', [keywords](ex: ['acquire', 'sire'])] not case sensitive
+            """
+            filter_type = filter_by[0]
+            filtered_comment_list = []
+            if filter_type == 'full_date':
+                s_date = filter_by[1].split('-')
+                e_date = filter_by[2].split('-')
+
+                s_datetime = datetime(int(s_date[0]), int(s_date[1]), int(s_date[2]))
+                e_datetime = datetime(int(e_date[0]), int(e_date[1]), int(e_date[2]))
+
+                for comment in comment_list:
+                    f_date = comment.find_element_by_css_selector("time[class='FH9sR Nzb55']").get_attribute('datetime').split('-')
+                    
+                    # converting to datetime
+                    f_datetime = datetime(int(f_date[0]), int(f_date[1]), int(f_date[2][:2]))
+
+                    if f_datetime >= s_datetime and f_datetime <= e_datetime:
+                        filtered_comment_list.append(comment)
+            
+            if filter_type == 'month':
+                s_year, s_month = filter_by[1].split('-')
+                e_year, e_month = filter_by[2].split('-')
+
+                print(s_year, s_month)
+                print(e_year, e_month)
+
+                for comment in comment_list:
+                    f_date = comment.find_element_by_css_selector("time[class='FH9sR Nzb55']").get_attribute('datetime').split('-')
+                    f_month = int(f_date[1])
+                    f_year = int(f_date[0])
+
+                    print(f_year, f_month)
+
+                    if f_year >= int(s_year) and f_year <= int(e_year):
+                        if int(e_year) > f_year:
+                            # if the end year is greater than current year, then we just make sure the month is >= month
+                            if f_month >= int(s_month):
+                                filtered_comment_list.append(comment)
+                        if int(e_year) == f_year:
+                            # if the end year is equal to current year, then we check month
+                            if f_month <= int(e_month):
+                                filtered_comment_list.append(comment)
+
+            if filter_type == 'user':
+                user_set = set(filter_by[1])
+                for comment in comment_list:
+                    # the user name
+                    user = comment.find_element_by_css_selector("a[class='sqdOP yWX7d     _8A5w5   ZIAjV ']").text
+
+                    if user in user_set:
+                        filtered_comment_list.append(comment)
+
+            if filter_type == 'keyword':
+                key_word_lis = filter_by[1]
+                for comment in comment_list:
+                    # the comment text
+                    comment_text = comment.find_element_by_css_selector("span[class='']").text.lower()
+
+                    # check if text contains any of the keyword
+                    if any(c in comment_text for c in key_word_lis if c in comment_text):
+                        filtered_comment_list.append(comment)
+
+            return filtered_comment_list
+
 
 
         def group_comments(comment_list, group_by=None):
             """
-            filter a selenium comment element by the filtered. returns a dictionary by the group by filter
+            group a selenium comment element by the filtered. returns a dictionary by the group by group by
 
             comment_list - the ul element that holds all the comment
             group_by - the group by filters are ['full_date', 'user']
@@ -423,11 +506,11 @@ class InstagramBotTools:
                        ex: keyword: wow
             """
 
-            
             if group_by is None:
                 group_by_dict = defaultdict(list)
                 group_by_dict["comments"] = [comment.find_element_by_css_selector("span[class='']").text for comment in comment_list]
                 return group_by_dict
+            
             if group_by == 'user':
                 group_by_dict = defaultdict(list)
                 for comment in comment_list:
@@ -439,6 +522,7 @@ class InstagramBotTools:
 
                     group_by_dict[user].append(comment_text)
                 return group_by_dict
+            
             if group_by == 'full_date':
                 group_by_dict = defaultdict(dict)
                 for comment in comment_list:
@@ -500,7 +584,10 @@ class InstagramBotTools:
                 break
 
         comment_list = post_comment_area_modal.find_elements_by_css_selector("ul[class='Mr508']")[:amount]
-        print(group_comments(comment_list, 'full_date'))
+
+        if filter_by is not None:
+            comment_list = filter_comments(comment_list, filter_by)
+        print(group_comments(comment_list, group_by))
         #f = io.open(r"C:\Users\acesw\Documents\Python Projects\Instagram Bot\personal test files\comment_test.txt", "w", encoding="utf-8")
         #f.write('\n'.join(comments))
         #f.close()

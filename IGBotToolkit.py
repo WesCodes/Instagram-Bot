@@ -4,8 +4,8 @@ from CountDownConsole import countdown
 
 from random import randint
 from time import sleep
-from collections import defaultdict
 from datetime import datetime
+from collections import deque
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -504,20 +504,20 @@ class InstagramBotTools:
             """
 
             if group_by is None:
-                group_by_dict = defaultdict(list)
-
+                group_by_dict = dict()
+                group_by_dict["comments"] = deque([])
                 for comment in comment_list:
                     # the user name
                     user = comment.find_element_by_css_selector("a[class='sqdOP yWX7d     _8A5w5   ZIAjV ']").text
 
                     # the comment text
                     comment_text = comment.find_element_by_css_selector("span[class='']").text
-
+                    
                     group_by_dict["comments"].append((user, comment_text))
                 return group_by_dict
             
             if group_by == 'user':
-                group_by_dict = defaultdict(list)
+                group_by_dict = dict()
                 for comment in comment_list:
                     # the user name
                     user = comment.find_element_by_css_selector("a[class='sqdOP yWX7d     _8A5w5   ZIAjV ']").text
@@ -525,11 +525,13 @@ class InstagramBotTools:
                     # the comment text
                     comment_text = comment.find_element_by_css_selector("span[class='']").text
 
+                    if user not in group_by_dict:
+                        group_by_dict[user] = deque([])
                     group_by_dict[user].append(comment_text)
                 return group_by_dict
             
             if group_by == 'full_date':
-                group_by_dict = defaultdict(dict)
+                group_by_dict = dict()
                 for comment in comment_list:
                     f_date = comment.find_element_by_css_selector("time[class='FH9sR Nzb55']").get_attribute('datetime')
                     f_date_lis = f_date.split('-')
@@ -543,11 +545,11 @@ class InstagramBotTools:
                     comment_text = comment.find_element_by_css_selector("span[class='']").text
 
                     if year not in group_by_dict:
-                        group_by_dict[year] = defaultdict(dict)
+                        group_by_dict[year] = dict()
                     if month not in group_by_dict[year]:
-                        group_by_dict[year][month] = defaultdict(dict)
+                        group_by_dict[year][month] = dict()
                     if day not in group_by_dict[year][month]:
-                        group_by_dict[year][month][day] = []
+                        group_by_dict[year][month][day] = deque([])
 
                     group_by_dict[year][month][day].append(comment_text)
 

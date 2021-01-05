@@ -593,7 +593,7 @@ class InstagramBotTools:
         if filter_by is not None:
             comment_list = filter_comments(comment_list, filter_by)
         
-        return comment_list
+        return group_comments(comment_list, group_by)
         #f = io.open(r"C:\Users\acesw\Documents\Python Projects\Instagram Bot\personal test files\comment_test.txt", "w", encoding="utf-8")
         #f.write('\n'.join(comments))
         #f.close()

@@ -1,7 +1,10 @@
+import io
+
 from CountDownConsole import countdown
 
 from random import randint
 from time import sleep
+from collections import defaultdict
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -395,7 +398,7 @@ class InstagramBotTools:
                 file.close()
 
 
-    def getComments(self, ig_post_link, amount = None, filter_by = None):
+    def getComments(self, ig_post_link, amount = None, group_by = None):
         """
         returns a dictionary of comments.
         if there is no filter specified, then the key-val pair will be ("comment", comments) with 
@@ -403,8 +406,65 @@ class InstagramBotTools:
 
         ig_post_link - the link to the ig post
         amount - amount of comments to get
-        filter_by - the filters are ['date', 'user', 'keyword']
+        group_by - the group by filters are ['full_date', 'user']
+                   ex: full_date: Dec 26, 2020
+                   ex: user: nike
         """
+
+
+        def group_comments(comment_list, group_by=None):
+            """
+            filter a selenium comment element by the filtered. returns a dictionary by the group by filter
+
+            comment_list - the ul element that holds all the comment
+            group_by - the group by filters are ['full_date', 'user']
+                       ex: full_date: Dec 26, 2020 (key, val) structure will be years -> months -> days with two inner dictionary
+                       ex: user: nike
+                       ex: keyword: wow
+            """
+
+            
+            if group_by is None:
+                group_by_dict = defaultdict(list)
+                group_by_dict["comments"] = [comment.find_element_by_css_selector("span[class='']").text for comment in comment_list]
+                return group_by_dict
+            if group_by == 'user':
+                group_by_dict = defaultdict(list)
+                for comment in comment_list:
+                    # the user name
+                    user = comment.find_element_by_css_selector("a[class='sqdOP yWX7d     _8A5w5   ZIAjV ']").text
+
+                    # the comment text
+                    comment_text = comment.find_element_by_css_selector("span[class='']").text
+
+                    group_by_dict[user].append(comment_text)
+                return group_by_dict
+            if group_by == 'full_date':
+                group_by_dict = defaultdict(dict)
+                for comment in comment_list:
+                    f_date = comment.find_element_by_css_selector("time[class='FH9sR Nzb55']").get_attribute('datetime')
+                    f_date_lis = f_date.split('-')
+                    
+                    # the dates
+                    year = int(f_date_lis[0])
+                    month = int(f_date_lis[1])
+                    day = int(f_date_lis[2][:2])
+
+                    # the comment text
+                    comment_text = comment.find_element_by_css_selector("span[class='']").text
+
+                    if year not in group_by_dict:
+                        group_by_dict[year] = defaultdict(dict)
+                    if month not in group_by_dict[year]:
+                        group_by_dict[year][month] = defaultdict(dict)
+                    if day not in group_by_dict[year][month]:
+                        group_by_dict[year][month][day] = []
+
+                    group_by_dict[year][month][day].append(comment_text)
+
+                return group_by_dict
+
+
 
         # go to ig post
         self.driver.get(ig_post_link)
@@ -414,28 +474,37 @@ class InstagramBotTools:
         # the area where the comments are displayed
         post_comment_area_modal = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "EtaWk")))
 
-        # click on the load more button
+        # load all the comments unless amount is specified
         while True:
+            # this will continue to load comments until the load more button can't be found
             try:
                 # current list of comments
                 comment_list = post_comment_area_modal.find_elements_by_css_selector("ul[class='Mr508']")
-
-                if len(comment_list) >= amount:
-                    break
-                sleep(randint(2, 3))
+                print("amount: ", len(comment_list))
+                
+                # if there is an amount specified
+                if amount is not None:
+                    if len(comment_list) >= amount:
+                        break
+                
+                wait_time = randint(1,2)
+                sleep(wait_time)
 
                 load_more_button = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[class='dCJp8 afkep']")))
                 load_more_button.click()
 
-                sleep(randint(2, 3))
+                wait_time = randint(1,2)
+                sleep(wait_time)
             except Exception as e:
                 print(e)
                 break
-        comment_list = post_comment_area_modal.find_elements_by_css_selector("ul[class='Mr508']")
-        comments = [comment.find_element_by_css_selector("span[class='']").text for comment in comment_list[:amount]]
-        f = open(r"C:\Users\acesw\Documents\Python Projects\Instagram Bot\personal test files\comment_test.txt", "w")
-        print('\n'.join(comments))
-        print(len(comments), "\n", comments)
+
+        comment_list = post_comment_area_modal.find_elements_by_css_selector("ul[class='Mr508']")[:amount]
+        print(group_comments(comment_list, 'full_date'))
+        #f = io.open(r"C:\Users\acesw\Documents\Python Projects\Instagram Bot\personal test files\comment_test.txt", "w", encoding="utf-8")
+        #f.write('\n'.join(comments))
+        #f.close()
+        #print(len(comments), "\n", comments)
 
 
 

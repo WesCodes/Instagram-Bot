@@ -501,14 +501,19 @@ class InstagramBotTools:
 
             comment_list - the ul element that holds all the comment
             group_by - the group by filters are ['full_date', 'user']
-                       ex: full_date: Dec 26, 2020 (key, val) structure will be years -> months -> days with two inner dictionary
-                       ex: user: nike
-                       ex: keyword: wow
             """
 
             if group_by is None:
                 group_by_dict = defaultdict(list)
-                group_by_dict["comments"] = [comment.find_element_by_css_selector("span[class='']").text for comment in comment_list]
+
+                for comment in comment_list:
+                    # the user name
+                    user = comment.find_element_by_css_selector("a[class='sqdOP yWX7d     _8A5w5   ZIAjV ']").text
+
+                    # the comment text
+                    comment_text = comment.find_element_by_css_selector("span[class='']").text
+
+                    group_by_dict["comments"].append((user, comment_text))
                 return group_by_dict
             
             if group_by == 'user':
@@ -587,7 +592,8 @@ class InstagramBotTools:
 
         if filter_by is not None:
             comment_list = filter_comments(comment_list, filter_by)
-        print(group_comments(comment_list, group_by))
+        
+        return comment_list
         #f = io.open(r"C:\Users\acesw\Documents\Python Projects\Instagram Bot\personal test files\comment_test.txt", "w", encoding="utf-8")
         #f.write('\n'.join(comments))
         #f.close()

@@ -424,11 +424,13 @@ class InstagramBotTools:
             filter a selenium comment element by the filtered. returns the comment_list element that is filtered
 
             comment_list - the ul element that holds all the comment
-            filter_by - what to filter comment by
-                       ex: filter_by = ['full_date', beginning_date(formatted: yyyy-mm-day(ex:2020-03-07), end_date(formatted: yyyy-mm-day(ex:2020-03-08)]
-                       ex: filter_by = ['month', beginning_month(ex:yyyy-mm), end_month(ex:yyyy-mm)]
-                       ex: filter_by = ['user', [usernames](ex:['nike', 'adidas'])]
-                       ex: filter_by = ['keyword', [keywords](ex: ['acquire', 'sire'])] not case sensitive
+            filter_by - what to filter comment by (2d list)
+                       ex: filter_by = [['full_date', beginning_date(formatted: yyyy-mm-day(ex:2020-03-07), end_date(formatted: yyyy-mm-day(ex:2020-03-08)]]
+                       ex: filter_by = [['month', beginning_month(ex:yyyy-mm), end_month(ex:yyyy-mm)]]
+                       ex: filter_by = [['user', [usernames](ex:['nike', 'adidas'])]]
+                       ex: filter_by = [['keyword', [keywords](ex: ['acquire', 'sire'])]] not case sensitive
+                       ex: if you want multiple filter_by then just put all the filter_by in a list in the order you want to filter by
+                           [['month', '2021-01', '2021-01'], ['keyword', '@']]
             duplicate - True if you want duplicate comments and False elsewise
             """
 
@@ -461,64 +463,67 @@ class InstagramBotTools:
             # filters out duplicate if no duplicate is desired
             comment_list = filter_duplicate(comment_list, duplicate)
 
-            filter_type = filter_by[0]
-            filtered_comment_list = []
-            if filter_type == 'full_date':
-                s_date = filter_by[1].split('-')
-                e_date = filter_by[2].split('-')
-
-                s_datetime = datetime(int(s_date[0]), int(s_date[1]), int(s_date[2]))
-                e_datetime = datetime(int(e_date[0]), int(e_date[1]), int(e_date[2]))
-
-                for comment in comment_list:
-                    f_date = comment.find_element_by_css_selector("time[class='FH9sR Nzb55']").get_attribute('datetime').split('-')
-                    
-                    # converting to datetime
-                    f_datetime = datetime(int(f_date[0]), int(f_date[1]), int(f_date[2][:2]))
-
-                    if f_datetime >= s_datetime and f_datetime <= e_datetime:
-                        filtered_comment_list.append(comment)
             
-            if filter_type == 'month':
-                s_year, s_month = filter_by[1].split('-')
-                e_year, e_month = filter_by[2].split('-')
+            for f in filter_by:
+                filter_type = f[0]
+                filtered_comment_list = []
+
+                if filter_type == 'full_date':
+                    s_date = f[1].split('-')
+                    e_date = f[2].split('-')
+
+                    s_datetime = datetime(int(s_date[0]), int(s_date[1]), int(s_date[2]))
+                    e_datetime = datetime(int(e_date[0]), int(e_date[1]), int(e_date[2]))
+
+                    for comment in comment_list:
+                        f_date = comment.find_element_by_css_selector("time[class='FH9sR Nzb55']").get_attribute('datetime').split('-')
+                        
+                        # converting to datetime
+                        f_datetime = datetime(int(f_date[0]), int(f_date[1]), int(f_date[2][:2]))
+
+                        if f_datetime >= s_datetime and f_datetime <= e_datetime:
+                            filtered_comment_list.append(comment)
+                
+                if filter_type == 'month':
+                    s_year, s_month = f[1].split('-')
+                    e_year, e_month = f[2].split('-')
 
 
-                for comment in comment_list:
-                    f_date = comment.find_element_by_css_selector("time[class='FH9sR Nzb55']").get_attribute('datetime').split('-')
-                    f_month = int(f_date[1])
-                    f_year = int(f_date[0])
+                    for comment in comment_list:
+                        f_date = comment.find_element_by_css_selector("time[class='FH9sR Nzb55']").get_attribute('datetime').split('-')
+                        f_month = int(f_date[1])
+                        f_year = int(f_date[0])
 
-                    if f_year >= int(s_year) and f_year <= int(e_year):
-                        if int(e_year) > f_year:
-                            # if the end year is greater than current year, then we just make sure the month is >= month
-                            if f_month >= int(s_month):
-                                filtered_comment_list.append(comment)
-                        if int(e_year) == f_year:
-                            # if the end year is equal to current year, then we check month
-                            if f_month <= int(e_month):
-                                filtered_comment_list.append(comment)
+                        if f_year >= int(s_year) and f_year <= int(e_year):
+                            if int(e_year) > f_year:
+                                # if the end year is greater than current year, then we just make sure the month is >= month
+                                if f_month >= int(s_month):
+                                    filtered_comment_list.append(comment)
+                            if int(e_year) == f_year:
+                                # if the end year is equal to current year, then we check month
+                                if f_month <= int(e_month):
+                                    filtered_comment_list.append(comment)
 
-            if filter_type == 'user':
-                user_set = set(filter_by[1])
-                for comment in comment_list:
-                    # the user name
-                    user = comment.find_element_by_css_selector("a[class='sqdOP yWX7d     _8A5w5   ZIAjV ']").text
+                if filter_type == 'user':
+                    user_set = set(f[1])
+                    for comment in comment_list:
+                        # the user name
+                        user = comment.find_element_by_css_selector("a[class='sqdOP yWX7d     _8A5w5   ZIAjV ']").text
 
-                    if user in user_set:
-                        filtered_comment_list.append(comment)
+                        if user in user_set:
+                            filtered_comment_list.append(comment)
 
-            if filter_type == 'keyword':
-                key_word_lis = filter_by[1]
-                for comment in comment_list:
-                    # the comment text
-                    comment_text = comment.find_element_by_css_selector("span[class='']").text.lower()
+                if filter_type == 'keyword':
+                    key_word_lis = f[1]
+                    for comment in comment_list:
+                        # the comment text
+                        comment_text = comment.find_element_by_css_selector("span[class='']").text.lower()
 
-                    # check if text contains any of the keyword
-                    if any(c in comment_text for c in key_word_lis if c in comment_text):
-                        filtered_comment_list.append(comment)
+                        # check if text contains any of the keyword
+                        if any(c in comment_text for c in key_word_lis if c in comment_text):
+                            filtered_comment_list.append(comment)
 
-            return filtered_comment_list
+                comment_list[:] = filtered_comment_list
 
 
 
@@ -605,13 +610,13 @@ class InstagramBotTools:
                     if len(comment_list) >= amount:
                         break
                 
-                #wait_time = randint(1,2)
-                #sleep(wait_time)
+                wait_time = randint(2,4)
+                sleep(wait_time)
 
                 load_more_button = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[class='dCJp8 afkep']")))
                 load_more_button.click()
 
-                wait_time = randint(1,2)
+                wait_time = randint(2,4)
                 sleep(wait_time)
             except Exception as e:
                 print(e)
@@ -620,7 +625,7 @@ class InstagramBotTools:
         comment_list = post_comment_area_modal.find_elements_by_css_selector("ul[class='Mr508']")[:amount]
 
         if filter_by is not None:
-            comment_list = filter_comments(comment_list, duplicate, filter_by)
+            filter_comments(comment_list, duplicate, filter_by)
         
         return group_comments(comment_list, group_by)
         #f = io.open(r"C:\Users\acesw\Documents\Python Projects\Instagram Bot\personal test files\comment_test.txt", "w", encoding="utf-8")

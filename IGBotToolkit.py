@@ -455,7 +455,6 @@ class InstagramBotTools:
                             unique_comment_pair = (user, comment_text)
                             seen_set.add(unique_comment_pair)
                             no_dupe_comment_lis.append(comment)
-                    print(seen_set)
                     return no_dupe_comment_lis
                 return comment_list
 
@@ -484,15 +483,11 @@ class InstagramBotTools:
                 s_year, s_month = filter_by[1].split('-')
                 e_year, e_month = filter_by[2].split('-')
 
-                print(s_year, s_month)
-                print(e_year, e_month)
 
                 for comment in comment_list:
                     f_date = comment.find_element_by_css_selector("time[class='FH9sR Nzb55']").get_attribute('datetime').split('-')
                     f_month = int(f_date[1])
                     f_year = int(f_date[0])
-
-                    print(f_year, f_month)
 
                     if f_year >= int(s_year) and f_year <= int(e_year):
                         if int(e_year) > f_year:
@@ -537,7 +532,7 @@ class InstagramBotTools:
 
             if group_by is None:
                 group_by_dict = dict()
-                group_by_dict["comments"] = dict()
+                group_by_dict["comments"] = []
                 for i, comment in enumerate(comment_list):
                     # the user name
                     user = comment.find_element_by_css_selector("a[class='sqdOP yWX7d     _8A5w5   ZIAjV ']").text
@@ -545,7 +540,7 @@ class InstagramBotTools:
                     # the comment text
                     comment_text = comment.find_element_by_css_selector("span[class='']").text
 
-                    group_by_dict["comments"][i] = (user, comment_text)
+                    group_by_dict["comments"].append((user, comment_text))
                 return group_by_dict
             
             if group_by == 'user':
@@ -558,8 +553,8 @@ class InstagramBotTools:
                     comment_text = comment.find_element_by_css_selector("span[class='']").text
 
                     if user not in group_by_dict:
-                        group_by_dict[user] = dict()
-                    group_by_dict[user][i] = comment_text
+                        group_by_dict[user] = []
+                    group_by_dict[user].append(comment_text)
                 return group_by_dict
             
             if group_by == 'full_date':
@@ -581,9 +576,9 @@ class InstagramBotTools:
                     if month not in group_by_dict[year]:
                         group_by_dict[year][month] = dict()
                     if day not in group_by_dict[year][month]:
-                        group_by_dict[year][month][day] = dict()
+                        group_by_dict[year][month][day] = []
 
-                    group_by_dict[year][month][day][i] = comment_text
+                    group_by_dict[year][month][day].append(comment_text)
 
                 return group_by_dict
 

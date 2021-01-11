@@ -17,4 +17,5 @@ def countdown(t, header = None):
         print(timeformat, end='\r')
         time.sleep(1)
         t -= 1
+    print()
 

@@ -17,11 +17,13 @@ class IGCommentPicker:
         randomly pick specified amount of comments and return the (user, comment) tuple
 
         amount_to_choose - specified amount to pick
-        filter_by - what to filter comment by
-                   ex: filter_by = ['full_date', beginning_date(formatted: yyyy-mm-day(ex:2020-03-07), end_date(formatted: yyyy-mm-day(ex:2020-03-08)]
-                   ex: filter_by = ['month', beginning_month(ex:yyyy-mm), end_month(ex:yyyy-mm)]
-                   ex: filter_by = ['user', [usernames](ex:['nike', 'adidas'])]
-                   ex: filter_by = ['keyword', [keywords](ex: ['acquire', 'sire'])] not case sensitive
+        filter_by - what to filter comment by (2d list)
+                       ex: filter_by = [['full_date', beginning_date(formatted: yyyy-mm-day(ex:2020-03-07), end_date(formatted: yyyy-mm-day(ex:2020-03-08)]]
+                       ex: filter_by = [['month', beginning_month(ex:yyyy-mm), end_month(ex:yyyy-mm)]]
+                       ex: filter_by = [['user', [usernames](ex:['nike', 'adidas'])]]
+                       ex: filter_by = [['keyword', [keywords](ex: ['acquire', 'sire'])]] not case sensitive
+                       ex: if you want multiple filter_by then just put all the filter_by in a list in the order you want to filter by
+                           [['month', '2021-01', '2021-01'], ['keyword', '@']]
         comment_amount - choose a speicific amount of comment to choose from. If none, then will choose all comment on post
         no_duplicate_comment - if true, don't count duplicate comments
                                else, count duplicate commments

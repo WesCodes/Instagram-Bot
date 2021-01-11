@@ -18,6 +18,7 @@ class InstagramBotTools:
     def __init__(self, username, password, fire_fox_driver_path):
         self.username = username
         self.password = password
+
         self.driver = webdriver.Firefox(executable_path = fire_fox_driver_path)
 
 
@@ -133,14 +134,13 @@ class InstagramBotTools:
         path - the path to write to
         """
 
-        print("inside write follower")
         # save the follower into txt file
         file1 = open(path + r"\followers.txt","w+")
 
         follower_string = '\n'.join(self.getFollowersLis())
         file1.write(follower_string)
         file1.close()
-        print("write Follower done")
+        print("Followers have been saved to " + path + r'\followers.txt')
         
         if len(follower_string.strip()) == 0:
             return False
@@ -161,6 +161,7 @@ class InstagramBotTools:
         follower_string = '\n'.join(self.getFollowingLis())
         file1.write(follower_string)
         file1.close()
+        print("Following text file saved to " + path + r'\following.txt')
 
         if len(follower_string.strip()) == 0:
             return False
@@ -202,12 +203,14 @@ class InstagramBotTools:
             users = list(following_s | followers_s)
             print(users)
 
-        print("creating user file")
+        
         # write the result to text file
         
         output_file = open(output_file_path, "w")
         output_file.write('\n'.join(users))
         output_file.close()
+
+        print(f"Users to comment saved to {output_file_path}")
 
 
 
@@ -314,13 +317,11 @@ class InstagramBotTools:
         wait_interaction = randint(3, 6)
         sleep(wait_interaction)
 
-        print("wow")
         # opening the text file to comment from
         user_comment_file = open(users_to_comment_path, "r")
 
         if seperate is False:
             # to comment on same line
-            print("not seperate")
             account_str = ""
             for i in range(amount):
                 # reading the text file line by line
@@ -334,7 +335,7 @@ class InstagramBotTools:
             remaining_users = user_comment_file.readlines()
             user_comment_file.close()
 
-            print("updating user file")
+
             # updating the text file by getting rid of users who's been commmented
             with open(users_to_comment_path, "w") as file:
                 for u in remaining_users:
@@ -410,11 +411,13 @@ class InstagramBotTools:
         group_by - the group by filters are ['full_date', 'user']
                    ex: full_date: Dec 26, 2020
                    ex: user: nike
-        filter_by - what to filter comment by
-                   ex: filter_by = ['full_date', beginning_date(formatted: yyyy-mm-day(ex:2020-03-07), end_date(formatted: yyyy-mm-day(ex:2020-03-08)]
-                   ex: filter_by = ['month', beginning_month(ex:yyyy-mm), end_month(ex:yyyy-mm)]
-                   ex: filter_by = ['user', [usernames](ex:['nike', 'adidas'])]
-                   ex: filter_by = ['keyword', [keywords](ex: ['acquire', 'sire'])] not case sensitive
+        filter_by - what to filter comment by (2d list)
+                       ex: filter_by = [['full_date', beginning_date(formatted: yyyy-mm-day(ex:2020-03-07), end_date(formatted: yyyy-mm-day(ex:2020-03-08)]]
+                       ex: filter_by = [['month', beginning_month(ex:yyyy-mm), end_month(ex:yyyy-mm)]]
+                       ex: filter_by = [['user', [usernames](ex:['nike', 'adidas'])]]
+                       ex: filter_by = [['keyword', [keywords](ex: ['acquire', 'sire'])]] not case sensitive
+                       ex: if you want multiple filter_by then just put all the filter_by in a list in the order you want to filter by
+                           [['month', '2021-01', '2021-01'], ['keyword', '@']]
         duplicate - True if you want duplicate comments and False elsewise
         """
 
@@ -610,8 +613,8 @@ class InstagramBotTools:
                     if len(comment_list) >= amount:
                         break
                 
-                wait_time = randint(2,4)
-                sleep(wait_time)
+                # wait_time = randint(2,4)
+                # sleep(wait_time)
 
                 load_more_button = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[class='dCJp8 afkep']")))
                 load_more_button.click()

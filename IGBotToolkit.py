@@ -3,6 +3,7 @@ import io
 from CountDownConsole import countdown
 
 from random import randint
+from random import uniform
 from time import sleep
 from datetime import datetime
 
@@ -11,6 +12,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 
 
 
@@ -18,8 +20,8 @@ class InstagramBotTools:
     def __init__(self, username, password, fire_fox_driver_path):
         self.username = username
         self.password = password
-
-        self.driver = webdriver.Firefox(executable_path = fire_fox_driver_path)
+        
+        self.driver = webdriver.Firefox(executable_path=r'C:\geckodriver.exe')
 
 
     def login(self):
@@ -42,7 +44,7 @@ class InstagramBotTools:
         # clicking the not now button for saving login
         WebDriverWait(self.driver, 15).until(lambda d: d.find_element_by_xpath('//button[text()="Not Now"]')).click() 
 
-        # clicking the not now button for turn on notification
+        # clicking the not now button for no notifcation
         WebDriverWait(self.driver, 15).until(lambda d: d.find_element_by_xpath('//button[text()="Not Now"]')).click() 
 
         # wait
@@ -62,33 +64,55 @@ class InstagramBotTools:
         # check follower count
         follower_count = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH,"//li[2]/a/span"))).text
         print(follower_count)
-        if int(follower_count) == 0:
-            return []
+        if len(follower_count) == 1:
+            if int(follower_count) == 0:
+                return []
 
-
+        # the link to the followers from profile page
+        follower_link = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "followers")))
+        follower_link.click()
+        
+        '''
+            The below code is to handle the case where
+            Instagram doesn't allow scrolling when the follower count
+            is above 400. This is not a problem when a normal a non-selenium
+            browser is opened. This problem could be due to the preventative
+            measure Instagram has taken to defend against botting.
+        ''' 
+        sleep(uniform(3,5))
+        self.driver.back()
+        sleep(uniform(3,5))
+        
         # the link to the followers from profile page
         follower_link = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "followers")))
         follower_link.click()
 
         # wait
         sleep(randint(3, 6))
-
-        # the screen that pops up when followers are clicked
+        
+        # the screen that pops up when following are clicked
         follower_modal = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "isgrP")))
-    
+        
+        # wait
+        sleep(randint(3, 6))
+
         # to scroll the follower modal and load all the following
         prev_scroll_height = 0
         curr_scroll_height = 1
         while prev_scroll_height != curr_scroll_height:
-            sleep(1)
+            
             prev_scroll_height = curr_scroll_height
             js_scroll_script = "arguments[0].scrollTo(0, arguments[0].scrollHeight); return arguments[0].scrollHeight"
             curr_scroll_height = self.driver.execute_script(js_scroll_script, follower_modal)
+            sleep(uniform(1, 2))
 
-        
+
+        # the screen that pops up when followers are clicked. load it again in case element goes stale
+        follower_modal = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "isgrP")))
         # find all the users
         follower_list = follower_modal.find_elements_by_css_selector('li')
-        return ["@" + name.find_element_by_css_selector('a').get_attribute('href').split('/')[3].strip() for name in follower_list]
+        print("list of follower: " +  str(len(follower_list)))
+        return set(["@" + name.find_element_by_css_selector('a').get_attribute('href').split('/')[3].strip() for name in follower_list])
 
 
     def getFollowingLis(self):
@@ -99,13 +123,32 @@ class InstagramBotTools:
         # check follower count
         following_count = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH,"//li[3]/a/span"))).text
         print(following_count)
-        if int(following_count) == 0:
-            return []
+
+        if len(following_count) == 1:
+            if int(following_count) == 0:
+                return []
 
         # the link to the followers from profile page
         following_link = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "following")))
         following_link.click()
         
+        '''
+            The below code is to handle the case where
+            Instagram doesn't allow scrolling when the follower count
+            is above 400. This is not a problem when a normal a non-selenium
+            browser is opened. This problem could be due to the preventative
+            measure Instagram has taken to defend against botting.
+        '''
+        sleep(uniform(3,5))
+        self.driver.back()
+        sleep(uniform(3,5))
+
+        # the link to the followers from profile page
+        following_link = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "following")))
+        following_link.click()
+
+
+        # wait
         sleep(randint(3, 6))
 
         # the screen that pops up when following are clicked
@@ -115,7 +158,7 @@ class InstagramBotTools:
         prev_scroll_height = 0
         curr_scroll_height = 1
         while prev_scroll_height != curr_scroll_height:
-            sleep(1)
+            sleep(uniform(1, 2))
             prev_scroll_height = curr_scroll_height
             js_scroll_script = "arguments[0].scrollTo(0, arguments[0].scrollHeight); return arguments[0].scrollHeight"
             curr_scroll_height = self.driver.execute_script(js_scroll_script, following_modal)
@@ -123,7 +166,8 @@ class InstagramBotTools:
 
         # find all the users
         following_list = following_modal.find_elements_by_css_selector('li')
-        return ["@" + name.find_element_by_css_selector('a').get_attribute('href').split('/')[3].strip() for name in following_list]
+        print("list of following: " +  str(len(following_list)))
+        return set(["@" + name.find_element_by_css_selector('a').get_attribute('href').split('/')[3].strip() for name in following_list])
 
 
     def writeFollowers(self, path="output files"):
@@ -219,7 +263,8 @@ class InstagramBotTools:
         reload profile page
         """
 
-        self.driver.get("https://www.instagram.com/" + self.username)
+        #self.driver.get("https://www.instagram.com/" + self.username)
+        self.driver.get("https://www.instagram.com/tony__zhou/")
         
 
     def commentBot(self, ig_post_link, users, seperate = True):
